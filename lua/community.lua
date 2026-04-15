@@ -8,10 +8,9 @@ return {
   { import = "astrocommunity.pack.lua" },
   -- 前端全家桶
   { import = "astrocommunity.pack.typescript" },
-  { import = "astrocommunity.pack.vue" },         -- 自动处理 Volar 和 TS
-  { import = "astrocommunity.pack.html-css" },    -- 包含 SCSS 和 Emmet
-  { import = "astrocommunity.formatting.prettier" }, -- 代码格式化
-  
+  { import = "astrocommunity.pack.vue" }, -- 自动处理 Volar 和 TS
+  { import = "astrocommunity.pack.html-css" }, -- 包含 SCSS 和 Emmet
+
   -- 后端 Rust 环境 (自动配置 rust-analyzer)
   { import = "astrocommunity.pack.rust" },
   -- import/override with your plugins folder
