@@ -1,103 +1,121 @@
-if true then return {} end -- WARN: REMOVE THIS LINE TO ACTIVATE THIS FILE
+if true then return {} end -- 警告：移除此行才能使本文件配置生效！目前此行让文件返回空配置，所有设置都会被跳过。
 
--- AstroLSP allows you to customize the features in AstroNvim's LSP configuration engine
--- Configuration documentation can be found with `:h astrolsp`
--- NOTE: We highly recommend setting up the Lua Language Server (`:LspInstall lua_ls`)
---       as this provides autocomplete and documentation while editing
+-- AstroLSP 允许你自定义 AstroNvim 中 LSP（语言服务器协议）的配置引擎
+-- 完整的配置文档可以通过 `:h astrolsp` 查看
+-- 注意：强烈建议安装 Lua 语言服务器 (`:LspInstall lua_ls`)，这样在编辑配置文件时能获得自动补全和文档提示。
 
 ---@type LazySpec
 return {
   "AstroNvim/astrolsp",
   ---@type AstroLSPOpts
   opts = {
-    -- Configuration table of features provided by AstroLSP
+    -- 功能特性开关
     features = {
-      codelens = true, -- enable/disable codelens refresh on start
-      inlay_hints = false, -- enable/disable inlay hints on start
-      semantic_tokens = true, -- enable/disable semantic token highlighting
+      codelens = true, -- 启动时是否刷新代码引用/测试等可点击提示（CodeLens）
+      inlay_hints = false, -- 启动时是否显示内嵌提示（如变量类型、参数名）
+      semantic_tokens = true, -- 是否启用语义高亮（更精确的语法着色）
     },
-    -- customize lsp formatting options
+
+    -- =====================
+    -- 代码格式化设置
+    -- =====================
     formatting = {
-      -- control auto formatting on save
+      -- 保存时自动格式化
       format_on_save = {
-        enabled = true, -- enable or disable format on save globally
-        allow_filetypes = { -- enable format on save for specified filetypes only
+        enabled = true, -- 全局启用保存时格式化
+        allow_filetypes = { -- 仅针对以下文件类型启用（留空表示全部启用，取消注释并添加文件类型即可限制）
           -- "go",
         },
-        ignore_filetypes = { -- disable format on save for specified filetypes
+        ignore_filetypes = { -- 禁止对以下文件类型进行保存时格式化
           -- "python",
         },
       },
-      disabled = { -- disable formatting capabilities for the listed language servers
-        -- disable lua_ls formatting capability if you want to use StyLua to format your lua code
+      disabled = { -- 禁用特定语言服务器的格式化功能（例如你想用 StyLua 格式化 Lua 代码时，可禁用 lua_ls）
         -- "lua_ls",
       },
-      timeout_ms = 1000, -- default format timeout
-      -- filter = function(client) -- fully override the default formatting function
+      timeout_ms = 1000, -- 格式化超时时间（毫秒）
+      -- filter = function(client) -- 完全自定义的格式化判断函数，返回 true 表示允许格式化
       --   return true
       -- end
     },
-    -- enable servers that you already have installed without mason
+
+    -- =====================
+    -- 手动指定要启用的语言服务器（不通过 mason 安装的）
+    -- =====================
     servers = {
-      -- "pyright"
+      -- "pyright"    -- 例如启用 Python 的 Pyright，确保已手动安装
     },
-    -- customize language server configuration passed to `vim.lsp.config`
-    -- client specific configuration can also go in `lsp/` in your configuration root (see `:h lsp-config`)
+
+    -- =====================
+    -- 语言服务器配置（传递给 `vim.lsp.config`）
+    -- 针对具体客户端的配置也可以放在 `lsp/` 目录下（参见 `:h lsp-config`）
+    -- =====================
     config = {
-      -- ["*"] = { capabilities = {} }, -- modify default LSP client settings such as capabilities
+      -- ["*"] = { capabilities = {} }, -- 修改所有服务器的默认客户端配置，例如调整能力
     },
-    -- customize how language servers are attached
+
+    -- =====================
+    -- 语言服务器附加（启动）时的自定义处理器
+    -- =====================
     handlers = {
-      -- a function with the key `*` modifies the default handler, functions takes the server name as the parameter
+      -- 键为 "*" 的函数会修改默认处理器，参数为服务器名称
       -- ["*"] = function(server) vim.lsp.enable(server) end
 
-      -- the key is the server that is being setup with `vim.lsp.config`
-      -- rust_analyzer = false, -- setting a handler to false will disable the set up of that language server
+      -- 键为具体的服务器名称，设置为 false 则禁止启动该服务器
+      -- rust_analyzer = false,
     },
-    -- Configure buffer local auto commands to add when attaching a language server
+
+    -- =====================
+    -- 当语言服务器附加到缓冲区时，自动创建的命令（autocmd）
+    -- =====================
     autocmds = {
-      -- first key is the `augroup` to add the auto commands to (:h augroup)
+      -- 第一个键是自动命令组名称 (:h augroup)
       lsp_codelens_refresh = {
-        -- Optional condition to create/delete auto command group
-        -- can either be a string of a client capability or a function of `fun(client, bufnr): boolean`
-        -- condition will be resolved for each client on each execution and if it ever fails for all clients,
-        -- the auto commands will be deleted for that buffer
+        -- 条件：决定是否创建/删除该自动命令组。
+        -- 可以是表示客户端能力的字符串，或签名 `fun(client, bufnr): boolean` 的函数。
+        -- 每次执行时条件都会对所有客户端进行判断，如果所有客户端都不满足，该缓冲区的自动命令将被删除。
         cond = "textDocument/codeLens",
         -- cond = function(client, bufnr) return client.name == "lua_ls" end,
-        -- list of auto commands to set
+        -- 要创建的自动命令列表
         {
-          -- events to trigger
+          -- 触发事件
           event = { "InsertLeave", "BufEnter" },
-          -- the rest of the autocmd options (:h nvim_create_autocmd)
-          desc = "Refresh codelens (buffer)",
+          desc = "Refresh codelens (buffer)", -- 描述信息
           callback = function(args)
+            -- 在功能开关打开的情况下刷新代码引用行
             if require("astrolsp").config.features.codelens then vim.lsp.codelens.enable(true, { bufnr = args.buf }) end
           end,
         },
       },
     },
-    -- mappings to be set up on attaching of a language server
+
+    -- =====================
+    -- 语言服务器附加时配置的键盘映射
+    -- =====================
     mappings = {
-      n = {
-        -- a `cond` key can provided as the string of a server capability to be required to attach, or a function with `client` and `bufnr` parameters from the `on_attach` that returns a boolean
+      n = { -- 普通模式下的映射
+        -- `cond` 键可以是表示服务器能力的字符串，或一个函数 `fun(client, bufnr): boolean`，满足条件时映射才生效
         gD = {
           function() vim.lsp.buf.declaration() end,
-          desc = "Declaration of current symbol",
+          desc = "跳转到当前符号的声明",
           cond = "textDocument/declaration",
         },
         ["<Leader>uY"] = {
           function() require("astrolsp.toggles").buffer_semantic_tokens() end,
-          desc = "Toggle LSP semantic highlight (buffer)",
+          desc = "切换当前缓冲区的语义高亮",
           cond = function(client)
             return client:supports_method "textDocument/semanticTokens/full" and vim.lsp.semantic_tokens ~= nil
           end,
         },
       },
     },
-    -- A custom `on_attach` function to be run after the default `on_attach` function
-    -- takes two parameters `client` and `bufnr`  (`:h lsp-attach`)
+
+    -- =====================
+    -- 自定义的 on_attach 回调函数（在默认 on_attach 之后执行）
+    -- 参数：client (语言服务器客户端对象) 和 bufnr (缓冲区编号)
+    -- =====================
     on_attach = function(client, bufnr)
-      -- this would disable semanticTokensProvider for all clients
+      -- 例如：禁用所有客户端的语义高亮提供者
       -- client.server_capabilities.semanticTokensProvider = nil
     end,
   },
