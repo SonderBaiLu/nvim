@@ -45,35 +45,21 @@ return {
 
     -- 5. 快捷键映射 (Mappings)
     mappings = {
-      n = { -- n 代表 Normal (普通模式)
-
+      n = { -- 普通模式
         -- 切换顶部标签页 (Buffer)
         ["<C-o>"] = { function() require("astrocore.buffer").nav(vim.v.count1) end, desc = "下一个标签页" },
         ["<C-i>"] = { function() require("astrocore.buffer").nav(-vim.v.count1) end, desc = "上一个标签页" },
-
-        -- 从顶部标签栏交互式关闭文件
-        ["<Leader>bd"] = {
-          function()
-            require("astroui.status.heirline").buffer_picker(
-              function(bufnr) require("astrocore.buffer").close(bufnr) end
-            )
-          end,
-          desc = "交互式关闭标签页",
-        },
-        ["<Leader>b"] = { desc = "󰓩 缓冲区 (Buffers)" },
-        ["<Leader>f"] = { desc = "󰍉 查找 (Find)" },
-        ["<Leader>g"] = { desc = "󰊢 Git 版本控制" },
-        ["<Leader>l"] = { desc = "󰒋 语言服务 (LSP)" },
-        ["<Leader>p"] = { desc = "󰏖 插件管理 (Packages)" },
-        ["<Leader>s"] = { desc = "󰒓 搜索会话 (Search)" },
-        ["<Leader>u"] = { desc = "󰠠 界面与工具 (UI)" },
-        ["<Leader>w"] = { desc = "󰖚 窗口布局 (Windows)" },
-        ["<Leader>x"] = { desc = "󰅙 错误诊断 (Diagnostics)" },
-        ["<Leader>c"] = { "<cmd>bdelete<cr>", desc = "󰅖 关闭当前文件" },
         ["<C-s>"] = { "<cmd>w<cr>", desc = "保存文件" },
+        ["<Leader>c"] = { "<cmd>bdelete<cr>", desc = "关闭当前文件" },
       },
-      i = { -- i 代表 Insert (插入模式，即正在打字写代码的状态)
+      i = { -- 插入模式 (高频核心优化！)
         ["<C-s>"] = { "<esc><cmd>w<cr>", desc = "保存文件" },
+
+        -- 用快捷键让你写小括号时手指绝不离开主键盘区
+        ["<A-h>"] = { "<Left>", desc = "光标向左微调" },
+        ["<A-l>"] = { "<Right>", desc = "光标向右微调（直接跨出括号）" },
+        ["<A-j>"] = { "<Down>", desc = "光标向下微调" },
+        ["<A-k>"] = { "<Up>", desc = "光标向上微调" },
       },
     },
   },

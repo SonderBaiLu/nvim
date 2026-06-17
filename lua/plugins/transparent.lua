@@ -1,17 +1,20 @@
 return {
   "xiyaowong/transparent.nvim",
-  enabled = false,
+  -- 职责：解开锁，让透明底座全面生效
+  enabled = true,
   opts = {
-    -- 强制把这些容易黑屏的浮窗和侧边栏也加入透明列表
+    -- 物理防御：强行把容易变黑块的组件全部变成通透玻璃质感
     extra_groups = {
-      "NormalFloat",
-      "NvimTreeNormal",
-      "NeoTreeNormal",
+      "NormalFloat", -- LSP 悬浮提示框
+      "FloatBorder", -- 弹窗边框
+      "NvimTreeNormal", -- 文件树背景
+      "NeoTreeNormal", -- NeoTree 侧边栏
       "NeoTreeNormalNC",
-      "SnacksPickerNormal", -- 针对你图中的 snacks.picker
-      "SnacksPickerList",
+      "BlinkCmpMenu", -- Blink 自动补全菜单主背景
+      "BlinkCmpMenuBorder", -- Blink 补全菜单边框
+      "BlinkCmpDoc", -- AI 及代码文档右侧浮窗
+      "BlinkCmpDocBorder",
     },
-    -- 清空排除项，不再允许任何黑块存在
-    exclude_groups = {},
+    exclude_groups = {}, -- 不允许任何黑块例外
   },
 }
