@@ -1,45 +1,164 @@
+local astroui_foldexpr = "v:lua.require'astroui.folding'.foldexpr()"
 return {
   "AstroNvim/astroui",
-  ---@type AstroUIOpts
-  opts = {
-    -- change colorscheL：me
-    colorscheme = "catppuccin",
-    transparent_background = true,
-    -- AstroUI allows you to easily modify highlight groups easily for any and all colorschemes
-    highlights = {
-      init = { -- this table overrides highlights in all themes
-      },
-      astrodark = { -- a table of overrides/changes when applying the astrotheme theme
-      },
-      global = {
-        -- 核心浮窗边框：设置为亮蓝色(或你主题的主色调)，背景保持透明(NONE)
-        FloatBorder = { fg = "#89b4fa", bg = "NONE" },
-
-        -- 针对你图中使用的 snacks.picker 弹出框进行边界强化
-        SnacksPickerBorder = { fg = "#cba6f7", bg = "NONE" },
-        SnacksPickerBox = { fg = "#cba6f7", bg = "NONE" },
-
-        -- 针对 cmp/blink 补全菜单的边框
-        BlinkCmpMenuBorder = { fg = "#cba6f7", bg = "NONE" },
-        BlinkCmpDocBorder = { fg = "#cba6f7", bg = "NONE" },
-
-        -- 可选：让 Telescope 边框也保持一致
-        TelescopeBorder = { fg = "#cba6f7", bg = "NONE" },
+  lazy = true,
+  specs = {
+    {
+      "AstroNvim/astrocore",
+      opts = {
+        autocmds = {
+          persistent_astroui_foldexpr = {
+            {
+              event = "FileType",
+              callback = function()
+                if require("astrocore.buffer").is_valid() then
+                  if vim.wo[0][0].foldexpr ~= astroui_foldexpr and vim.go.foldexpr == astroui_foldexpr then
+                    vim.wo[0][0].foldexpr = astroui_foldexpr
+                  end
+                end
+              end,
+            },
+          },
+        },
+        options = {
+          opt = {
+            foldcolumn = "1", -- display fold column
+            foldenable = true, -- enable folds
+            foldexpr = astroui_foldexpr, -- set function for calculating folds
+            foldlevel = 99, -- set high foldlevel
+            foldmethod = "expr", -- use `foldexpr` for calculating folds
+            foldtext = "", -- use transparent foldtext
+          },
+        },
       },
     },
-    -- Icons can be configured throughout the interface
+  },
+  ---@type AstroUIOpts
+  opts = {
+    colorscheme = "astrotheme",
+    folding = {
+      enabled = function(bufnr) return require("astrocore.buffer").is_valid(bufnr) end,
+      methods = { "lsp", "treesitter", "indent" },
+    },
     icons = {
-      -- configure the loading of the lsp in the status line
-      LSPLoading1 = "⠋",
-      LSPLoading2 = "⠙",
-      LSPLoading3 = "⠹",
-      LSPLoading4 = "⠸",
-      LSPLoading5 = "⠼",
-      LSPLoading6 = "⠴",
-      LSPLoading7 = "⠦",
-      LSPLoading8 = "⠧",
-      LSPLoading9 = "⠇",
-      LSPLoading10 = "⠏",
+      ActiveLSP = "",
+      ActiveTS = "",
+      ArrowLeft = "",
+      ArrowRight = "",
+      Bookmarks = "",
+      BufferClose = "󰅖",
+      DapBreakpoint = "",
+      DapBreakpointCondition = "",
+      DapBreakpointRejected = "",
+      DapLogPoint = "󰛿",
+      DapStopped = "󰁕",
+      Debugger = "",
+      DefaultFile = "󰈙",
+      Diagnostic = "󰒡",
+      DiagnosticError = "",
+      DiagnosticHint = "󰌵",
+      DiagnosticInfo = "󰋼",
+      DiagnosticWarn = "",
+      Ellipsis = "…",
+      Environment = "",
+      FileNew = "",
+      FileModified = "",
+      FileReadOnly = "",
+      FoldClosed = "",
+      FoldOpened = "",
+      FoldSeparator = " ",
+      FolderClosed = "",
+      FolderEmpty = "",
+      FolderOpen = "",
+      Git = "󰊢",
+      GitAdd = "",
+      GitBranch = "",
+      GitChange = "",
+      GitConflict = "",
+      GitDelete = "",
+      GitIgnored = "◌",
+      GitRenamed = "➜",
+      GitSign = "▎",
+      GitStaged = "✓",
+      GitUnstaged = "✗",
+      GitUntracked = "★",
+      List = "",
+      LSPLoading1 = "",
+      LSPLoading2 = "󰀚",
+      LSPLoading3 = "",
+      MacroRecording = "",
+      Package = "󰏖",
+      Paste = "󰅌",
+      Refresh = "",
+      Search = "",
+      Selected = "❯",
+      Session = "󱂬",
+      Sort = "󰒺",
+      Spellcheck = "󰓆",
+      Tab = "󰓩",
+      TabClose = "󰅙",
+      Terminal = "",
+      Window = "",
+      WordFile = "󰈭",
+    },
+    text_icons = {
+      ActiveLSP = "LSP:",
+      ArrowLeft = "<",
+      ArrowRight = ">",
+      BufferClose = "x",
+      DapBreakpoint = "B",
+      DapBreakpointCondition = "C",
+      DapBreakpointRejected = "R",
+      DapLogPoint = "L",
+      DapStopped = ">",
+      DefaultFile = "[F]",
+      DiagnosticError = "X",
+      DiagnosticHint = "?",
+      DiagnosticInfo = "i",
+      DiagnosticWarn = "!",
+      Ellipsis = "...",
+      Environment = "Env:",
+      FileModified = "*",
+      FileReadOnly = "[lock]",
+      FoldClosed = "+",
+      FoldOpened = "-",
+      FoldSeparator = " ",
+      FolderClosed = "[D]",
+      FolderEmpty = "[E]",
+      FolderOpen = "[O]",
+      GitAdd = "[+]",
+      GitChange = "[/]",
+      GitConflict = "[!]",
+      GitDelete = "[-]",
+      GitIgnored = "[I]",
+      GitRenamed = "[R]",
+      GitSign = "|",
+      GitStaged = "[S]",
+      GitUnstaged = "[U]",
+      GitUntracked = "[?]",
+      MacroRecording = "Recording:",
+      Paste = "[PASTE]",
+      Search = "?",
+      Selected = "*",
+      Spellcheck = "[SPELL]",
+      TabClose = "X",
+    },
+    lazygit = {
+      theme_path = vim.fs.normalize(vim.fn.stdpath "cache" .. "/astroui-lazygit-config.yml"),
+      theme = {
+        [241] = { fg = "Special" },
+        activeBorderColor = { fg = "MatchParen", bold = true },
+        cherryPickedCommitBgColor = { bg = "Substitute" },
+        cherryPickedCommitFgColor = { fg = "Substitute" },
+        defaultFgColor = { fg = "Normal" },
+        inactiveBorderColor = { fg = "FloatBorder" },
+        markedBaseCommitBgColor = { bg = "CurSearch" },
+        markedBaseCommitFgColor = { fg = "CurSearch" },
+        optionsTextColor = { fg = "Function" },
+        searchingActiveBorderColor = { fg = "MatchParen", bold = true },
+        selectedLineBgColor = { bg = "Visual" }, -- set to `default` to have no background colour
+        unstagedChangesColor = { fg = "DiagnosticError" },
+      },
     },
   },
 }
