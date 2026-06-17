@@ -1,5 +1,5 @@
 return {
-  "Magicisen/grug-far.nvim",
+  "MagicDuck/grug-far.nvim",
   cmd = { "GrugFar" },
   keys = {
     -- 快捷键制导：按下空格 + f + r，瞬间拉起满血的大范围代码重构物理替换缓冲区
