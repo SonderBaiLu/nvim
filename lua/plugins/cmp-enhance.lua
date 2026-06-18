@@ -2,6 +2,12 @@ return {
   {
     "saghen/blink.cmp",
     opts = {
+      keymap = {
+        preset = 'default',
+        ['<C-k>'] = { 'select_prev', 'fallback' }, -- Ctrl+k 补全列表向上移动
+        ['<C-j>'] = { 'select_next', 'fallback' }, -- Ctrl+j 补全列表向下移动
+        ['<CR>'] = { 'accept', 'fallback' },        -- 回车键 确认补全
+      },
       appearance = {
         -- 'mono' (Nerd Font Mono) 或 'normal' (Nerd Font)
         -- 这里调整为 mono 可以确保图标在弹出框中完美对齐

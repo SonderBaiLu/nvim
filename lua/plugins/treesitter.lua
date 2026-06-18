@@ -12,11 +12,11 @@ return {
 
     -- 3. 强制触发全量增量安装
     require("nvim-treesitter").install(langs)
+
     vim.api.nvim_create_autocmd("FileType", {
       callback = function(args)
         local bufnr = args.buf
         local ft = vim.bo[bufnr].filetype
-
         -- 将 Neovim 的文件类型安全映射为 Treesitter 内部可识别的语言名
         local lang = vim.treesitter.language.get_lang(ft) or ft
 
@@ -28,5 +28,12 @@ return {
         end
       end,
     })
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_loaded(bufnr) then
+        local ft = vim.bo[bufnr].filetype
+        local lang = vim.treesitter.language.get_lang(ft) or ft
+        pcall(vim.treesitter.start, bufnr, lang)
+      end
+    end
   end,
 }

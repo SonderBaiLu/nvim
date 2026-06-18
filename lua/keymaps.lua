@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-global
+
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 
@@ -106,3 +108,5 @@ map("n", "gr", vim.lsp.buf.references, { desc = "LSP: 查找全局引用" })
 map("n", "K", vim.lsp.buf.hover, { desc = "LSP: 悬浮文档提示" })
 map("n", "<Leader>ca", vim.lsp.buf.code_action, { desc = "LSP: 修复与代码动作" })
 map("n", "<Leader>cr", vim.lsp.buf.rename, { desc = "LSP: 重命名当前变量" })
+map("n", "gl", vim.diagnostic.open_float, { desc = "LSP: 显示当前行错误/警告详情" })
+map("n", "<Leader>cx", vim.diagnostic.setloclist, { desc = "LSP: 把当前文件所有报错注入到底部面板" })

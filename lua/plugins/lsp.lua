@@ -1,78 +1,87 @@
--- lua/plugins/lsp.lua
 return {
-  {
-    "neovim/nvim-lspconfig",
-    event = { "BufReadPost", "BufNewFile" },
-    dependencies = {
-      "williamboman/mason.nvim",
-      "saghen/blink.cmp", -- 完美注入你已有的 blink.cmp 补全能力！
-    },
-    config = function()
-      local blink = require("blink.cmp")
-      local capabilities = blink.get_lsp_capabilities()
+  "neovim/nvim-lspconfig",
+  lazy = false, -- 开机即满血，抢占首发点火权
+  dependencies = {
+    "saghen/blink.cmp",
+  },
+  config = function()
+    local lsp = vim.lsp
 
-      -- 1. 【核心改变】：使用官方新 API 注入全局能力，让所有服务自动获得 blink 补全
-      vim.lsp.config("*", { capabilities = capabilities })
+    -- 1. 动态获取 Vue 语言服务器的绝对路径（严格遵循官方 Wiki 标准）
+    local vue_language_server_path = vim.fn.stdpath "data"
+      .. "/mason/packages/vue-language-server/node_modules/@vue/language-server"
 
-      -- 2. 基础通用语言服务一键点火（新版使用原生 vim.lsp.enable 激活）
-      local servers = { "html", "cssls", "emmet_ls", "lua_ls", "taplo" }
-      for _, server in ipairs(servers) do
-        vim.lsp.enable(server)
-      end
+    -- 2. 构造官方要求的 Vue TS 插件对象
+    local vue_plugin = {
+      name = "@vue/typescript-plugin",
+      location = vue_language_server_path,
+      languages = { "vue" },
+      configNamespace = "typescript",
+    }
 
-      -- 3. 完美的 Vue 3 视图解耦配置 (Volar)
-      vim.lsp.config("volar", {
-        init_options = {
-          vue = { hybridMode = true },
-        },
-      })
-      vim.lsp.enable("volar")
-
-      -- 4. TS/JS 后端逻辑接管 (Vtsls) 并挂载 Vue 编译插件
-      vim.lsp.config("vtsls", {
+    -- 3. 声明全栈核心语言服务器矩阵
+    local servers = {
+      rust_analyzer = {},
+      taplo = {},
+      lua_ls = {
+        root_markers = { ".git", "init.lua" },
         settings = {
+          Lua = { workspace = { checkThirdParty = false }, telemetry = { enable = false } },
+        },
+      },
+      vtsls = {
+        -- 【核心破局点 1：强行让 vtsls 允许挂载到 Vue 文件上】
+        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
+        settings = {
+          -- 【核心破局点 2：标准的官方插件注入 API】
           vtsls = {
             tsserver = {
-              globalPlugins = {
-                {
-                  name = "@vue/typescript-plugin",
-                  location = vim.fn.stdpath("data")
-                    .. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
-                  languages = { "vue" },
-                  configNamespace = "typescript",
-                  enableForWorkspaceTypeScriptVersions = true,
-                },
-              },
+              globalPlugins = { vue_plugin },
             },
           },
         },
-      })
-      vim.lsp.enable("vtsls")
+      },
+      vue_ls = {
+        -- 最新版 nvim-lspconfig 内部已内置请求转发机制，只需绑定文件类型即可
+        filetypes = { "vue" },
+      },
+    }
 
-      -- 5. 满血版 Rust 生产环境配置 (Rust Analyzer)
-      vim.lsp.config("rust_analyzer", {
-        settings = {
-          ["rust-analyzer"] = {
-            imports = {
-              granularity = { group = "module" },
-              prefix = "self",
-            },
-            cargo = {
-              buildScripts = { enable = true }, -- 自动触发 build.rs 编译，防宏报错
-            },
-            procMacro = { enable = true },     -- 完美展开并解析 Rust 衍生宏
-            diagnostics = {
-              disabled = { "unresolved-proc-macro" }, -- 严防没有就绪的宏产生虚假报错
-            },
-          },
+    -- 4. 开机点火：全盘启动与补全引擎接管
+    for server_name, server_opts in pairs(servers) do
+      local success, blink = pcall(require, "blink.cmp")
+      if success then server_opts.capabilities = blink.get_lsp_capabilities(server_opts.capabilities) end
+
+      -- Neovim 0.11+ 标准 API
+      if lsp.config then
+        lsp.config(server_name, server_opts)
+        lsp.enable(server_name)
+      end
+    end
+
+    -- 5. 视觉增强：依然保留你的顶级高亮诊断 UI
+    vim.diagnostic.config {
+      virtual_text = { spacing = 4, prefix = "●" },
+      signs = {
+        text = {
+          [vim.diagnostic.severity.ERROR] = "󰅚 ",
+          [vim.diagnostic.severity.WARN] = "󰀪 ",
+          [vim.diagnostic.severity.INFO] = "󰋽 ",
+          [vim.diagnostic.severity.HINT] = "󰌶 ",
         },
-      })
-      vim.lsp.enable("rust_analyzer")
+      },
+      update_in_insert = false,
+      severity_sort = true,
+      float = {
+        focused = false,
+        border = "rounded",
+        source = "always",
+      },
+    }
 
-      -- 6. 浮动窗口外观美化（给诊断提示框加上精美的圆角）
-      vim.diagnostic.config({
-        float = { border = "rounded" },
-      })
-    end,
-  },
+    vim.api.nvim_create_autocmd("CursorHold", {
+      pattern = "*",
+      callback = function() vim.diagnostic.open_float(nil, { focusable = false }) end,
+    })
+  end,
 }
