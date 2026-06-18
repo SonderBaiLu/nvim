@@ -1,54 +1,65 @@
 return {
   "nvim-neo-tree/neo-tree.nvim",
   opts = {
-    -- 1. 🛑【核心断后：完全移除顶部标签栏，从根源消灭所有黑块冲突】
+    borders = true,
+    -- 🏷️ 顶部源选择器：美化保留
     source_selector = {
-      winbar = true, -- 彻底关闭顶部的 File / Bufs / Git 选择器，还你绝对纯净的头部
-      statusline = true, -- 关闭底部状态状态栏提示
+      winbar = true,
+      statusline = false, -- 只需一个入口，避免冗余
+      content_layout = "center",
+      separator = "",
+      show_separator_on_edge = true,
+      sources = {
+        { source = "filesystem", display_name = "File" },
+        { source = "buffers", display_name = "Buffers" },
+        { source = "git_status", display_name = "Git" },
+      },
     },
 
-    -- 2. 📁 完美对齐 LazyVim 的文件系统底层行为
+    -- 📁 文件系统行为
     filesystem = {
-      bind_to_cwd = false, -- 允许文件树超越当前终端路径，自由浏览任意目录
+      bind_to_cwd = false,
       follow_current_file = {
-        enabled = true, -- 【高频心流】右侧编辑区切换到哪，左侧文件树自动滚动并高亮该文件
+        enabled = true, -- 右侧文件切换时左侧自动跟踪
       },
-      use_libuv_file_watcher = true, -- 注入内核级异步事件轮询，文件增删时左侧秒级同步，绝不卡顿
+      use_libuv_file_watcher = true,
       filtered_items = {
-        visible = true, -- 让隐藏文件变灰变透明可见，而不是彻底消失
-        hide_dotfiles = false, -- 展现 .env, .gitignore 等隐身配置文件
-        hide_gitignored = false, -- 展现被 git 忽略的文件夹（如后端 target/，前端 node_modules/）
+        visible = true, -- 隐藏文件以灰色显示，不彻底消失
+        hide_dotfiles = false, -- 显示 .env, .gitignore 等
+        hide_gitignored = true, -- 隐藏被 git 忽略的文件夹，避免卡顿
       },
     },
 
-    -- 3. 🖥️ 侧边栏物理排版美化
+    -- 🖥️ 窗口 & 映射
     window = {
-      width = 30, -- 固定 30 像素黄金宽度，让代码主视窗更开阔
+      width = 30,
       mappings = {
-        ["l"] = "open", -- 完美对齐 LazyVim：按 l 键直接展开文件夹或打开文件
-        ["h"] = "close_node", -- 完美对齐 LazyVim：按 h 键直接折叠当前目录
-        ["<space>"] = "none", -- 禁用空格键，防止污染你的 AstroNvim Leader 主键
+        ["l"] = "open",
+        ["h"] = "close_node",
+        ["<space>"] = "none", -- 防止污染 leader 键
+        ["<C-v>"] = "open_vsplit",
+        ["<C-x>"] = "open_split",
       },
     },
 
-    -- 4. ✨ 现代高级 IDE 阶梯导轨与语义图标定制
+    -- 视觉样式
     default_component_configs = {
       indent = {
-        with_expanders = true, -- 开启高级折叠指示器
+        with_expanders = true,
         expander_collapsed = "",
         expander_expanded = "",
-        highlight = "NeoTreeIndentMarker", -- 消除多级嵌套的视觉视觉割裂感
+        highlight = "NeoTreeIndentMarker",
       },
       icon = {
-        folder_closed = "📂",
-        folder_open = "📂",
-        folder_empty = "📁",
+        folder_closed = "",
+        folder_open = "",
+        folder_empty = "",
         default = "󰈚",
       },
       git_status = {
         symbols = {
           added = "✚",
-          modified = "", -- 采用内敛的小圆点表示修改，比生硬的字母优雅 10 倍
+          modified = "",
           deleted = "✖",
           untracked = "",
           ignored = "",

@@ -1,17 +1,46 @@
+-- lua/plugins/snacks_premium.lua
 return {
   "folke/snacks.nvim",
   opts = {
-    -- 1. 启动轻量级平滑滚动内核，带有微小的物理阻尼感
+    -- 1. 原有的平滑滚动和动画配置
     scroll = {
       enabled = true,
       animate = {
-        duration = 150, -- 150毫秒的极速动画衰减，既有丝滑感又绝不拖泥带水
+        duration = 150,
         easing = "linear",
       },
     },
-    -- 2. 启动弹窗及命令面板的动态淡入淡出动画特效
     animate = { enabled = true },
-    -- 3. 启动超大文件防御盾牌（写几万行 log 自动关闭高亮防止卡顿）
     bigfile = { enabled = true },
+
+    -- 2. 新增：高颜值的 Neovim 启动面板
+    dashboard = {
+      enabled = true,
+      preset = {
+        header = [[
+       ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗
+       ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║
+       ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║
+       ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║
+       ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║
+       ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝
+        ]],
+        -- 启动页的快捷菜单项
+        keys = {
+          { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
+          { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
+          { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+          { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
+          {
+            icon = " ",
+            key = "c",
+            desc = "Config",
+            action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})",
+          },
+          { icon = "󰒲 ", key = "L", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
+          { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+        },
+      },
+    },
   },
 }
