@@ -1,57 +1,85 @@
----@diagnostic disable: undefined-global
 -- =============================================================================
---                 1. 跨平台核心环境变量与工具路径动态注入
+-- options.lua — 编辑器基础选项与跨平台环境（关联 S.lua）
 -- =============================================================================
-local is_windows = vim.fn.has "win32" == 1
-local path_sep = is_windows and ";" or ":"
 
--- 统一路径格式化函数：智能展开波浪号并根据 OS 转换斜杠方向
-local function normalize_path(path)
-  local expanded = vim.fn.expand(path)
-  if is_windows then
-    return expanded:gsub("/", "\\")
-  else
-    return expanded
-  end
-end
+local S = require("S")
 
--- 动态计算并注入 Mason 二进制下载目录
-local mason_bin = normalize_path(vim.fn.stdpath "data" .. "/mason/bin")
-vim.env.PATH = mason_bin .. path_sep .. vim.env.PATH
-
-local extra_paths = {}
-
-if is_windows then
-  -- Windows 阵营专属路径
-  table.insert(extra_paths, normalize_path "~/.cargo/bin")
-  table.insert(extra_paths, normalize_path "~/AppData/Roaming/npm")
-else
-  -- Linux / macOS 阵营专属路径
-  table.insert(extra_paths, normalize_path "~/.cargo/bin")
-  table.insert(extra_paths, normalize_path "~/.npm-global/bin")
-  table.insert(extra_paths, normalize_path "~/.local/share/pnpm")
-end
-
--- 极其安全的防御性循环：只有当该路径在当前电脑上真实存在时，才允许追加到 PATH 中
-for _, path in ipairs(extra_paths) do
-  if vim.fn.isdirectory(path) == 1 then vim.env.PATH = vim.env.PATH .. path_sep .. path end
-end
-
--- =============================================================================
---                 2. 全局前缀键定义 (必须在加载任何插件前确立)
--- =============================================================================
+-- Leader 必须在插件加载前设置
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 
--- =============================================================================
---                 3. 原生基础 Vim 选项配置 (脱离旧框架独立运行)
--- =============================================================================
-vim.opt.relativenumber = false -- 开启相对行号
-vim.opt.number = true -- 显示当前行号
-vim.opt.signcolumn = "yes" -- 始终显示符号列
-vim.opt.wrap = true -- 长代码自动在视窗内折行
-vim.opt.tabstop = 2 -- Tab 占 2 个空格
-vim.opt.shiftwidth = 2 -- 缩进占 2 个空格
-vim.opt.expandtab = true -- 将 Tab 自动转换为空格
-vim.opt.termguicolors = true -- 开启 24 位真彩色支持
-vim.opt.clipboard = "unnamedplus" -- 挂载系统剪贴板
+-- 禁用内置 netrw（由 neo-tree 接管，提升启动速度）
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+S.setup_path()
+S.setup_clipboard()
+
+local opt = vim.opt
+
+-- 外观
+opt.number = true
+opt.relativenumber = false
+opt.signcolumn = "yes"
+opt.cursorline = true
+opt.termguicolors = true
+opt.showmode = false -- 由 lualine 显示模式（中文）
+opt.laststatus = 3 -- 全局状态栏
+opt.cmdheight = 0 -- 与 noice 协同，减少命令行占用
+opt.pumheight = 12
+opt.scrolloff = 6
+opt.sidescrolloff = 8
+opt.list = true
+opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+opt.fillchars = { eob = " ", fold = " ", foldopen = "▾", foldclose = "▸" }
+
+-- 缩进
+opt.tabstop = 2
+opt.shiftwidth = 2
+opt.softtabstop = 2
+opt.expandtab = true
+opt.smartindent = true
+opt.wrap = true
+opt.breakindent = true
+
+-- 搜索
+opt.ignorecase = true
+opt.smartcase = true
+opt.incsearch = true
+opt.hlsearch = true
+
+-- 性能与体验
+opt.updatetime = 250
+opt.timeoutlen = 300
+opt.undofile = true
+opt.swapfile = false
+opt.backup = false
+opt.writebackup = false
+opt.splitright = true
+opt.splitbelow = true
+opt.mouse = "a"
+opt.completeopt = { "menu", "menuone", "noselect" }
+opt.confirm = true
+opt.smoothscroll = true
+
+-- 折叠（Treesitter；无解析器时安全回退）
+opt.foldmethod = "expr"
+opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+opt.foldlevel = 99
+opt.foldlevelstart = 99
+opt.foldenable = true
+-- 无 treesitter 时避免报错刷屏
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("SFoldFallback", { clear = true }),
+  callback = function(ev)
+    local ok = pcall(vim.treesitter.get_parser, ev.buf)
+    if not ok then
+      vim.wo.foldmethod = "indent"
+    end
+  end,
+})
+
+-- Windows 终端兼容：减少闪烁
+if S.is_windows then
+  opt.shellslash = false
+end

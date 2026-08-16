@@ -1,3 +1,10 @@
-require("options")   -- 1. 先注入环境变量、Leader键与基础外观选项
-require("keymaps")   -- 2. 快捷键中心
-require("lazy_init") -- 3. 最后引导启动插件管理器并渲染全局 Catppuccin 主题
+-- =============================================================================
+-- init.lua — Neovim 配置入口（纯原生 Lua，无 AstroNvim）
+-- 加载顺序：工具库 → 选项 → 快捷键 → 自动命令 → 插件管理器
+-- =============================================================================
+
+require("S") -- 全局工具库 _G.S
+require("options") -- 编辑器选项与跨平台 PATH
+require("keymaps") -- 全局快捷键（插件专属键位在各插件文件内）
+require("autocmds") -- 自动保存、高亮等
+require("lazy_init") -- lazy.nvim 引导与插件树

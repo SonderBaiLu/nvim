@@ -1,13 +1,21 @@
+-- =============================================================================
+-- plugins/frontend.lua — 前端增强：标签自动闭合（HTML / JSX / Vue）
+-- 关联：Treesitter；LSP 由 vtsls / vue_ls / html / cssls 提供
+-- =============================================================================
+
 return {
-  -- 解决标签同步重命名 (改前面的 <div>，后面的 </div> 自动跟着变)
   {
     "windwp/nvim-ts-autotag",
-    event = { "InsertEnter" },
+    event = { "BufReadPre", "BufNewFile" },
     opts = {
       opts = {
-        enable_rename = true,
         enable_close = true,
+        enable_rename = true,
         enable_close_on_slash = true,
+      },
+      per_filetype = {
+        ["html"] = { enable_close = true },
+        ["vue"] = { enable_close = true },
       },
     },
   },

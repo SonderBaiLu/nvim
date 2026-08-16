@@ -1,178 +1,254 @@
-# 前置条件
-1. lsp 需要调用`tree-sitter-cli` 系统里面需要安装这个包
-# 📂 职责分明的模块化目录架构
+# 纯原生 Neovim 全栈开发配置
+
+完全独立的 Lua 配置（**无 AstroNvim**），面向 Linux / Windows / WSL，统一 Catppuccin Mocha 视觉与中文界面。
+
+## 特性概览
+
+- 插件管理：`lazy.nvim`（默认懒加载 + `:Lazy profile` 启动分析）
+- 补全：`blink.cmp` + LuaSnip（不使用 nvim-cmp）
+- LSP：Mason 自动安装，覆盖 Rust / Lua / TS / Vue / React / HTML / CSS / SQL / Markdown
+- 格式化：`conform.nvim`（保存时自动格式化）
+- Lint：`nvim-lint`（ESLint）；Rust Clippy 经 rust-analyzer
+- 调试：`nvim-dap`（codelldb + js-debug-adapter）
+- UI：Catppuccin · lualine · bufferline · neo-tree · snacks dashboard · noice
+
+## 目录结构
 
 ```text
-~/.config/nvim/
-├── init.lua                # 内核引导启动程序，初始化 lazy.nvim
+nvim/
+├── init.lua                 # 入口
 ├── lua/
-│   ├── lazy_setup.lua      # 插件总线加载网络（统筹社区包与自研包）
-│   ├── community.lua       # 全栈语言生态底座（Rust, Vue, TS, Lua, HTML/CSS 核心增强）
-│   ├── polish.lua          # 系统级生命周期后置钩子（Wayland 剪贴板内核硬核绑定）
-│   └── plugins/            # 自研功能职责模块（单一职责拆解）
-│       ├── astrocore.lua   # 编辑器核心选项重载、高频全局基础键位控制流
-│       ├── astroui.lua     # 视觉图层高亮重写、全景浮窗透明规则引擎
-│       ├── catppuccin.lua  # Catppuccin 现代质感色彩规范、防闪烁浮窗底色锁
-│       ├── astrolsp.lua    # LSP（语言服务器协议）生命周期流、保存全自动格式化、意图分发
-│       ├── frontend.lua    # 前端 HTML/Vue 标签同步闭合与 AST 语义重构变换
-│       ├── none-ls.lua     # 物理级格式化桥接器（Prettier & StyLua 注入总线）
-│       ├── database.lua    # Dadbod 可视化 PostgreSQL 关系型数据库全栈操纵矩阵
-│       ├── cmp-enhance.lua # Blink.cmp 毫秒级补全高辨识度几何图标增强与高频防抖
-│       ├── minuet.lua      # Minuet AI 离线/云端双大模型本地大上下文心流补全器
-│       ├── neo-tree.lua    # 模块化文件拓扑树（集成隐藏配置文件与 .env 临时透视）
-│       ├── noice.lua       # 内核级交互 UI 重载、居中毛玻璃命令面板流
-│       ├── fcitx5.lua      # 物理输入法插入/普通模态状态机智能切换软链接
-│       ├── dropbar.lua     # 基于 AST 抽象语法树的面包屑顶层路径导航
-│       # ---- IDE 骨灰级能力增强积木 ----
-│       ├── neotest.lua     # 可视化单元测试生命周期调度中心（Cargo test / Vitest）
-│       ├── search_everywhere.lua # 全局增量索引矩阵与“Search Everywhere”搜索中心
-│       ├── git_enhanced.lua # 行级版本控制差分流与 Inline Blame 虚拟文本责问追踪器
-│       ├── structure_panel.lua # AST 语法大纲视图面板（IntelliJ Structure）
-│       ├── treesj.lua      # 语法树级别代码块单行/多行结构化无损变换模块
-│       ├── dressing.lua    # 运行时全局交互 UI（Select/Input）悬浮窗重定向
-│       ├── inc_rename.lua  # LSP 符号重构全缓冲区毫秒级动态增量渲染器
-│       ├── hlchunk.lua     # 作用域缩进阶梯矩阵高亮与嵌套作用域流式引导线
-│       ├── sticky_context.lua # 顶层作用域粘性固定层（Sticky Lines Context）
-│       ├── flash_motion.lua # 全屏幕二维字符拓扑高维视觉制导跳跃矩阵
-│       └── grug_far.lua    # 项目级跨文件结构化增量正则查找/替换工作台
-└── lazy-lock.json          # 全量插件原子级 Commit 锁版本编排清单
+│   ├── S.lua                # 跨平台工具库
+│   ├── options.lua          # 编辑器选项
+│   ├── keymaps.lua          # 全局快捷键
+│   ├── autocmds.lua         # 自动保存等
+│   ├── lazy_init.lua        # lazy.nvim 引导
+│   └── plugins/             # 单一职责插件模块（均 < 300 行）
+│       ├── colorscheme.lua
+│       ├── lualine.lua
+│       ├── bufferline.lua
+│       ├── neo-tree.lua
+│       ├── snacks.lua
+│       ├── ui.lua
+│       ├── hlchunk.lua
+│       ├── rainbow.lua
+│       ├── blink.lua
+│       ├── mason.lua
+│       ├── lsp.lua
+│       ├── formatting.lua
+│       ├── lint.lua
+│       ├── comment.lua
+│       ├── autopairs.lua
+│       ├── session.lua
+│       ├── flash.lua
+│       ├── telescope.lua
+│       ├── treesitter.lua
+│       ├── trouble.lua
+│       ├── gitsigns.lua
+│       ├── lazygit.lua
+│       ├── markdown.lua
+│       ├── database.lua
+│       ├── toggleterm.lua
+│       ├── overseer.lua
+│       ├── dap.lua
+│       ├── which-key.lua
+│       └── frontend.lua
+├── lazy-lock.json           # 首次 :Lazy sync 后生成/更新
+└── README.md
 ```
 
-# 1. 普通模式下的全局控制、搜索与重构 (Normal Mode)
+## 安装步骤
 
-| 快捷键             | 功能说明                                    | 触发源插件 / 功能职责      | 联动插件或特性                        |
-| ------------------ | ------------------------------------------- | -------------------------- | ------------------------------------- |
-| `<Leader><Leader>` | Search Everywhere 全局模糊检索一切          | snacks.picker / 搜索中心   | 完美复刻 IDEA 双击 Shift              |
-| `<Leader>ff`       | 查找文件 (根据文件名物理检索)               | snacks.picker / 文件定位   | 对应 IDEA Ctrl+Shift+N                |
-| `<Leader>fg`       | 全局文本流搜索 (根据关键字实时 Grep)        | snacks.picker / 文本检索   | 对应 IDEA Ctrl+Shift+F                |
-| `<Leader>fr`       | 最近打开文件历史 (文件缓冲区历史追踪)       | snacks.picker / 历史溯源   | 对应 IDEA Ctrl+E                      |
-| `gd`               | 跳转至符号定义绝对坐标                      | Native LSP / 语义解析      | 联动 snacks.picker 悬浮预览           |
-| `gr`               | 溯源所有引用拓扑节点 (查找所有被调用的地方) | Native LSP / 语义解析      | 对应 IDEA Alt+F7                      |
-| `gD`               | 跳转至符号的声明处 (Declaration)            | Native LSP / 语义解析      | 标准 LSP 规范                         |
-| `<Leader>lr`       | 全局符号增量式重命名 (实时预览联动)         | inc-rename.nvim / 重构管道 | 联动 Native LSP 修改项目文件          |
-| `<A-CR>`           | 意图操作与快速修复 (自动导入/修复报错)      | Native LSP / 重构意图分发  | 对应 IDEA Alt+Enter                   |
-| `<A-7>`            | 切换 代码抽象大纲面板 (类/结构体/函数树)    | aerial.nvim / AST 结构树   | 对应 IDEA Alt+7 侧边栏                |
-| `<Leader>m`        | 代码块 单行/多行抽象语法树结构化无损变换    | treesj / 语法树变换        | 保持语法绝对安全地自动拆折行          |
-| `s`                | 全屏幕 二维字符拓扑高维视觉制导瞬时跳跃     | flash.nvim / 运动矩阵      | 盲打两码闪现到目标字符                |
-| `S`                | 基于 AST 语义块的 智能视觉区块选择          | flash.nvim / 选择矩阵      | 对应 IDEA Ctrl+W 连续选择             |
-| `<Leader>fr`       | 打开 项目级可视化结构化替换矩阵控制台       | grug-far.nvim / 全局重构   | 对应 IDEA Ctrl+Shift+R                |
-| `<Leader>lf`       | 全自动代码排版与物理折行                    | AstroLSP / 格式化中心      | 自动分流：前端 Prettier，后端 Rustfmt |
-| `<C-o>`            | 切换到 右侧下一个标签页 (Buffer)            | astrocore / 标签导航       | 顶部标签页高频顺滑穿梭                |
-| `<C-i>`            | 切换到 左侧上一个标签页 (Buffer)            | astrocore / 标签导航       | 顶部标签页高频顺滑穿梭                |
-| `<C-s>`            | 强制保存当前文件                            | astrocore / 文件流控制     | 联动触发保存时自动格式化流            |
-| `<Leader>c`        | 物理卸载关闭当前文件缓冲区                  | astrocore / 文件流控制     | 干净关闭，不破坏窗口布局              |
+### 通用前置依赖
 
-## 🛠️ 职责分明的核心插件清单
+| 依赖 | 说明 |
+|------|------|
+| Neovim **0.10+**（推荐 0.11+） | `vim.lsp.config` API |
+| Git | 克隆插件 |
+| [Nerd Font](https://www.nerdfonts.com/) | 推荐 **Sarasa Term SC Nerd** / JetBrainsMono Nerd Font |
+| ripgrep (`rg`) | Telescope 全文搜索 |
+| fd | 可选，加速找文件 |
+| Node.js 18+ | TS/Vue LSP、Prettier、Markdown 预览 |
+| Rust toolchain | `rust-analyzer`、`rustfmt`、`clippy` |
+| tree-sitter CLI（可选） | 部分环境编译解析器需要 |
 
-1. **系统底层与语言生态包 (Base & Packs)**
+### Linux
 
-   AstroNvim/AstroNvim: 系统底座，提供轻量且极其高效的框架级生命周期钩子。
+```bash
+# 备份旧配置
+mv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null
 
-   astrocommunity.pack.rust: 官方社区 Rust 满血语言包，内置 rustaceanvim 与 crates.nvim，完美支撑多模块架构下的自动诊断与 Cargo 拓扑管理。
+# 链接或复制本仓库
+git clone <你的仓库地址> ~/.config/nvim
+# 或: ln -s /path/to/nvbim/nvim ~/.config/nvim
 
-   astrocommunity.pack.vue & typescript: 针对现代大前端的语言增强组件，自动处理 Vue 文件的宏推导。
+# 系统依赖示例（Debian/Ubuntu）
+sudo apt install ripgrep fd-find
+# Arch: sudo pacman -S ripgrep fd
 
-2. **全栈研发重器 (Full-Stack Engineering Tools)**
+nvim
+# 首次启动会自动安装 lazy.nvim 与插件，完成后执行：
+:Lazy sync
+:Mason
+# 在 Mason 中确认 LSP/工具已安装，或等待 mason-tool-installer 自动安装
+```
 
-   kristijanhusak/vim-dadbod-ui: 数据库可视化交互面板，负责渲染数据库的树状表结构、视图。
+### Windows
 
-   tpope/vim-dadbod: 数据库底层连接引擎，通过标准的 psql 管道与本地或 TrueNAS 上的 PostgreSQL 建立物理通信。
+```powershell
+# 备份
+Move-Item $env:LOCALAPPDATA\nvim "$env:LOCALAPPDATA\nvim.bak" -ErrorAction SilentlyContinue
 
-   kristijanhusak/vim-dadbod-completion: 数据库智能补全插件，动态读取物理表结构，自动在 .sql 草稿本中提示表字段。
+# 复制或克隆到
+# %LOCALAPPDATA%\nvim
+git clone <你的仓库地址> "$env:LOCALAPPDATA\nvim"
 
-   windwp/nvim-ts-autotag: 标签同步重命名模块，基于新版双层配置架构，改写 HTML/Vue 前端标签时自动对齐闭合标签。
+# 建议安装
+winget install BurntSushi.ripgrep.MSVC
+winget install sharkdp.fd
+winget install OpenJS.NodeJS.LTS
+winget install Rustlang.Rustup
 
-   milanglacier/minuet-ai.nvim: AI 智能辅助编程引擎，与本地本地运行的 Ollama qwen2.5-coder 建立 FIM 补全流，接管打字阶段的大上下文推导。
+# 终端字体设为 Sarasa Term SC Nerd 或 JetBrainsMono Nerd Font
+nvim
+:Lazy sync
+```
 
-3. **IDEA 工业级效率增强器 (IDE-Grade Enhancements)**
+### WSL
 
-   nvim-neotest/neotest: 单元测试调度器，深度绑定 rustaceanvim 测试适配器，实时抓取测试树。
+在 WSL 内按 Linux 方式安装配置；剪贴板已在 `S.setup_clipboard()` 中对接 `clip.exe`。
 
-   folke/snacks.nvim (Picker/Scroll): 全能的增量索引矩阵与平滑动画渲染内核，提供双击空格全局搜索及带物理阻尼感的流畅滚动。
+## 语言工具链
 
-   lewis6991/gitsigns.nvim: 动态计算 Git 差分流，在行尾渲染实时 Inline Blame 提交历史元数据。
+| 语言 | LSP | 格式化 | Lint / 调试 |
+|------|-----|--------|-------------|
+| Lua | lua_ls | stylua | — |
+| Rust | rust-analyzer | rustfmt | Clippy / codelldb |
+| JS/TS/React | vtsls | prettier | eslint_d / js-debug |
+| Vue 3 | vue_ls + vtsls 插件 | prettier | eslint_d |
+| HTML/CSS/SCSS | html / cssls / emmet | prettier | stylelint（可选） |
+| Markdown | marksman | prettier | 浏览器预览 |
+| PostgreSQL | —（dadbod 补全） | sql-formatter | dadbod-ui |
 
-   stevearc/aerial.nvim: 基于 Tree-sitter 的 AST 大纲视图，以秒级拓扑解析代码的方法、结构体、类关系。
+> Windows 说明：`sqls` 需要 Go，`sqlls` 需要编译原生模块，故默认不自动安装 SQL LSP；数据库开发以 `vim-dadbod` + `vim-dadbod-ui` + blink 补全为准。若已安装 Go，可在 Mason 中手动安装 `sqls` 并在 `lsp.lua` 中加回配置。
 
-   Wansmer/treesj: 基于抽象语法树节点的重构组件，一键无损拆分/合并代码块（数组、匹配分支、对象）。
+## 主要快捷键
 
-   smjonas/inc-rename.nvim: 强化的 LSP 重命名组件，提供在输入新变量名时全缓冲区同名引用的毫秒级变色联动。
+Leader = `空格`
 
-   shellRaining/hlchunk.nvim: 智能识别当前的 Treesitter 闭包作用域，绘制跨越物理空行的垂直引导线。
+### 文件与搜索
 
-   nvim-treesitter/nvim-treesitter-context: 顶层上下文钉扎器，当代码块超出屏幕时，在最上方临时锁定该函数头或类名。
+| 快捷键 | 功能 |
+|--------|------|
+| `<Leader>e` | 切换资源管理器 |
+| `<Leader>ff` | 查找文件 |
+| `<Leader>fg` | 全文搜索 |
+| `<Leader>fo` | 最近文件 |
+| `<Leader>fb` | 缓冲区列表 |
 
-   folke/flash.nvim: 二维字符拓扑精准跳跃引擎，通过标记覆盖消除肉眼寻找光标的停顿。
+### LSP / 代码
 
-   Magicisen/grug-far.nvim: 基于高性能 ripgrep 构建的项目级全局重构/物理替换虚拟控制台。
+| 快捷键 | 功能 |
+|--------|------|
+| `gd` / `gD` / `gr` / `gi` | 定义 / 声明 / 引用 / 实现 |
+| `K` | 悬浮文档 |
+| `<Leader>ca` | 代码动作 |
+| `<Leader>cr` | 重命名 |
+| `<Leader>cf` | 格式化 |
+| `<Leader>cl` | 手动 Lint |
+| `gl` / `]d` / `[d` | 诊断详情 / 下一个 / 上一个 |
+| `<Leader>xx` | Trouble 诊断面板 |
 
-4. **极致视觉美化 (Aesthetics & UI Overrides)**
+### Git / 终端 / 调试
 
-   catppuccin/nvim: 系统色彩规范主轴，配置为 floats 强制深色、主背景全透明，完美融入桌面壁纸。
+| 快捷键 | 功能 |
+|--------|------|
+| `<Leader>gg` | LazyGit |
+| `]h` / `[h` | 下一个/上一个 Git 块 |
+| `<C-\>` | 浮动终端 |
+| `<Leader>db` | 切换断点 |
+| `<Leader>dc` | 继续/启动调试 |
+| `<Leader>du` | 调试 UI |
 
-   xiyaowong/transparent.nvim: 透明底座引擎，强行擦除悬浮提示框、自动补全菜单、文件树底色的黑块，实现极致通透。
+### 数据库（前缀 `k` = 库，避开与调试 `d` 冲突）
 
-   folke/noice.nvim: 内核级 UI 重载器，将原生底部的搜索和命令流重定向为居中的毛玻璃浮动面板。
+| 快捷键 | 功能 |
+|--------|------|
+| `<Leader>ku` | 切换数据库面板 |
+| `<Leader>kc` | 添加数据库连接 |
+| `<Leader>kf` | 定位 SQL 缓冲 |
 
-   saghen/blink.cmp: 新一代高性能异步补全引擎，配置了专属高辨识度几何图标，多线程渲染绝不卡顿。
+### 其他
 
-# 插入模式下的心流保持按键 (Insert Mode)
+| 快捷键 | 功能 |
+|--------|------|
+| `s` / `S` | Flash 跳转 / 语法树选择 |
+| `<Leader>mp` | Markdown 预览 |
+| `<Leader>or` | Overseer 运行任务 |
+| `<Leader>pp` | Lazy 启动性能分析 |
+| `<Leader>ss` / `<Leader>sl` | 保存 / 加载会话 |
+| `<C-s>` | 保存 |
+| `<C-o>` / `<C-i>` | 下一个 / 上一个标签 |
 
-| 快捷键             | 功能说明                                    | 触发源插件 / 功能职责      | 联动插件或特性                        |
-| ------------------ | ------------------------------------------- | -------------------------- | ------------------------------------- |
-| `<Leader><Leader>` | Search Everywhere 全局模糊检索一切          | snacks.picker / 搜索中心   | 完美复刻 IDEA 双击 Shift              |
-| `<Leader>ff`       | 查找文件 (根据文件名物理检索)               | snacks.picker / 文件定位   | 对应 IDEA Ctrl+Shift+N                |
-| `<Leader>fg`       | 全局文本流搜索 (根据关键字实时 Grep)        | snacks.picker / 文本检索   | 对应 IDEA Ctrl+Shift+F                |
-| `<Leader>fr`       | 最近打开文件历史 (文件缓冲区历史追踪)       | snacks.picker / 历史溯源   | 对应 IDEA Ctrl+E                      |
-| `gd`               | 跳转至符号定义绝对坐标                      | Native LSP / 语义解析      | 联动 snacks.picker 悬浮预览           |
-| `gr`               | 溯源所有引用拓扑节点 (查找所有被调用的地方) | Native LSP / 语义解析      | 对应 IDEA Alt+F7                      |
-| `gD`               | 跳转至符号的声明处 (Declaration)            | Native LSP / 语义解析      | 标准 LSP 规范                         |
-| `<Leader>lr`       | 全局符号增量式重命名 (实时预览联动)         | inc-rename.nvim / 重构管道 | 联动 Native LSP 修改项目文件          |
-| `<A-CR>`           | 意图操作与快速修复 (自动导入/修复报错)      | Native LSP / 重构意图分发  | 对应 IDEA Alt+Enter                   |
-| `<A-7>`            | 切换 代码抽象大纲面板 (类/结构体/函数树)    | aerial.nvim / AST 结构树   | 对应 IDEA Alt+7 侧边栏                |
-| `<Leader>m`        | 代码块 单行/多行抽象语法树结构化无损变换    | treesj / 语法树变换        | 保持语法绝对安全地自动拆折行          |
-| `s`                | 全屏幕 二维字符拓扑高维视觉制导瞬时跳跃     | flash.nvim / 运动矩阵      | 盲打两码闪现到目标字符                |
-| `S`                | 基于 AST 语义块的 智能视觉区块选择          | flash.nvim / 选择矩阵      | 对应 IDEA Ctrl+W 连续选择             |
-| `<Leader>fr`       | 打开 项目级可视化结构化替换矩阵控制台       | grug-far.nvim / 全局重构   | 对应 IDEA Ctrl+Shift+R                |
-| `<Leader>lf`       | 全自动代码排版与物理折行                    | AstroLSP / 格式化中心      | 自动分流：前端 Prettier，后端 Rustfmt |
-| `<C-o>`            | 切换到 右侧下一个标签页 (Buffer)            | astrocore / 标签导航       | 顶部标签页高频顺滑穿梭                |
-| `<C-i>`            | 切换到 左侧上一个标签页 (Buffer)            | astrocore / 标签导航       | 顶部标签页高频顺滑穿梭                |
-| `<C-s>`            | 强制保存当前文件                            | astrocore / 文件流控制     | 联动触发保存时自动格式化流            |
-| `<Leader>c`        | 物理卸载关闭当前文件缓冲区                  | astrocore / 文件流控制     | 干净关闭，不破坏窗口布局              |
-| `<A-h>`            | 光标向左微调一格                            | astrocore / 键位重写       | 告别 Esc，打字时手指永不离主键盘区    |
-| `<A-l>`            | 光标向右微调一格 (用于直接跨出括号)         | astrocore / 键位重写       | 告别 Esc，打字时手指永不离主键盘区    |
-| `<A-j>`            | 光标向下微调一行                            | astrocore / 键位重写       | 告别 Esc，打字时手指永不离主键盘区    |
-| `<A-k>`            | 光标向上微调一行                            | astrocore / 键位重写       | 告别 Esc，打字时手指永不离主键盘区    |
-| `<A-CR>`           | 在输入打字状态下直接呼出快速修复面板        | Native LSP / 意图分发      | 极其硬核，不中断打字心流直接修报错    |
-| `<A-i>`            | 手动强行召唤本地 AI 给出代码流补全          | minuet-ai.nvim / AI 引擎   | 抑制自动闪烁，只在需要时由极客触发    |
-| `<A-a>`            | 采纳并写入 AI 给出的当前行级代码建议        | minuet-ai.nvim / 虚拟文本  | 快速采纳 AI 代码补全                  |
-| `<A-e>`            | 拒绝并隐去当前屏幕上的 AI 代码提示          | minuet-ai.nvim / 虚拟文本  | 快速中断 AI 代码补全                  |
-| `<C-y>`            | 轮询切换到 下一个 AI 备选代码片段           | minuet-ai.nvim / 补全列表  | 大模型大上下文片段筛选                |
-| `<C-o>`            | 轮询切换到 上一个 AI 备选代码片段           | minuet-ai.nvim / 补全列表  | 大模型大上下文片段筛选                |
-| `<C-s>`            | 瞬间保存代码并回退到普通模式                | astrocore / 文件流控制     | 极速下盘物理落盘保存                  |
+完整分组提示：按 `<Leader>` 后稍候，由 which-key 以中文显示。
 
-**🗃️ 关系型数据库操纵矩阵 (vim-dadbod-ui 面板内或 SQL 缓冲区)**
+## 性能
 
-    :DBUIToggle (Terminal Command): 在普通模式下直接呼出或隐藏左侧的数据库管理面板。
+- 默认 `lazy = true`，按 `event` / `cmd` / `ft` / `keys` 加载
+- 已禁用 netrw、gzip、tar、zip 等内置插件
+- 自检：启动后执行 `:Lazy profile`，目标参考机（i7-10 代 + SSD）≤ 150ms（机器差异可浮动）
 
-    A (Shift + a, 面板内): 物理激活新连接输入框，支持输入标准的 postgresql://user:pass@host:5432/db。
+## 常见问题
 
-    <C-o> (面板内选中数据库): 瞬间创建该数据库专属的名为 .sql 的独立查询草稿本缓冲区。
+### LSP 未启动
 
-    Enter (面板内): 折叠或展开当前高亮的表结构、视图字段。
+1. `:LspInfo` 查看是否附加
+2. `:Mason` 确认对应服务器已安装
+3. Vue：确认 `vue-language-server` 与 `vtsls` 均已安装；`.vue` 需两者配合
+4. 工作区根目录需有项目标记（如 `package.json`、`Cargo.toml`）
 
-    Enter 或 <C-CR> (.sql 草稿本内): 选中某段 SQL 语句直接运行，在正下方以完美对齐的表格高亮渲染出数据集结果。
+### 格式化失败
 
-**📁 模块化文件拓扑树 (neo-tree 侧边栏内)**
+1. `:ConformInfo` 查看可用 formatter
+2. 确认 Mason 已装 `prettier` / `stylua` / `sql-formatter`
+3. Rust 需系统 `rustfmt`（`rustup component add rustfmt`）
 
-    H (Shift + h, 文件树内): 智能物理透视开关。一键在“清爽模式”与“全量模式”之间切换，让隐藏的系统点文件（如 .env, .gitignore, .prettierrc）瞬间在左侧变灰显形。
+### ESLint 无输出
 
-**🧪 单元测试全生命周期控制台 (neotest 面板与代码交互)**
+项目需存在 ESLint 配置文件；无配置时会静默跳过，避免刷屏。
 
-    <Leader>tr: 测试：运行当前光标函数。精准定位当前 Rust 函数或前端用例并在后台并发执行。
+### Windows 终端图标乱码
 
-    <Leader>tf: 测试：运行当前文件所有用例。批量跑完当前缓冲区的全量测试流。
+将终端字体改为 Nerd Font（推荐 Sarasa Term SC Nerd），并确保 `termguicolors` 开启。
 
-    <Leader>ts: 测试：切换可视化状态树面板。在右侧以树状图实时渲染测试通过（绿色）或断言失败（红色）的拓扑图。
+### 启动偏慢
 
-    <Leader>to: 测试：打开控制台标准输出日志。直接调出单元测试输出的控制台面板，查看 Rust 报错的 panic! 详细行号及堆栈。
+`:Lazy profile` 找出耗时插件；避免在 `init` 阶段同步安装大量 Treesitter 解析器（首次会较慢，之后有缓存）。
+
+### 数据库连接
+
+编辑 `lua/plugins/database.lua` 中 `vim.g.dbs` 示例连接，或在 UI 中用 `<Leader>kc` 添加。连接串勿提交真实密码到公开仓库。
+
+## 版本锁定
+
+首次在本机执行：
+
+```vim
+:Lazy sync
+```
+
+将自动生成/更新 `lazy-lock.json`，提交该文件即可跨机器复现插件版本。
+
+## 迁移说明（相对旧配置）
+
+已删除/替换：
+
+| 旧内容 | 原因 |
+|--------|------|
+| AstroNvim / `astrocore` 键位 | 彻底去框架化 |
+| `dankcolors.lua` | 与 Catppuccin 冲突 |
+| `barbar.lua` | 换用 bufferline |
+| `cmp-enhance` / Minuet | 统一 blink.cmp |
+| `dropbar` / `grug_far` / `todo` 等 | 非验收必需，降低启动面 |
+
+配置为从零重写的原生模块，可直接覆盖使用。

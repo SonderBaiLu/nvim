@@ -1,88 +1,161 @@
+-- =============================================================================
+-- plugins/lsp.lua — 全栈 LSP（Neovim 0.11+ vim.lsp.config）
+-- 关联：blink.cmp capabilities；Vue = vue_ls + vtsls 官方插件；中文诊断
+-- =============================================================================
+
 return {
   "neovim/nvim-lspconfig",
-  lazy = false, -- 开机即满血，抢占首发点火权
+  event = { "BufReadPre", "BufNewFile" },
   dependencies = {
+    "williamboman/mason.nvim",
+    "williamboman/mason-lspconfig.nvim",
     "saghen/blink.cmp",
   },
   config = function()
-    local lsp = vim.lsp
+    local S = require("S")
 
-    -- 1. 动态获取 Vue 语言服务器的绝对路径（严格遵循官方 Wiki 标准）
-    local vue_language_server_path = vim.fn.stdpath "data"
-      .. "/mason/packages/vue-language-server/node_modules/@vue/language-server"
+    -- 中文诊断级别与符号
+    local severity_zh = {
+      [vim.diagnostic.severity.ERROR] = "错误",
+      [vim.diagnostic.severity.WARN] = "警告",
+      [vim.diagnostic.severity.INFO] = "信息",
+      [vim.diagnostic.severity.HINT] = "提示",
+    }
 
-    -- 2. 构造官方要求的 Vue TS 插件对象
+    vim.diagnostic.config({
+      virtual_text = {
+        spacing = 2,
+        prefix = "●",
+        format = function(diagnostic)
+          local level = severity_zh[diagnostic.severity] or "诊断"
+          return string.format("%s: %s", level, diagnostic.message)
+        end,
+      },
+      signs = {
+        text = {
+          [vim.diagnostic.severity.ERROR] = "错",
+          [vim.diagnostic.severity.WARN] = "警",
+          [vim.diagnostic.severity.INFO] = "信",
+          [vim.diagnostic.severity.HINT] = "示",
+        },
+      },
+      underline = true,
+      update_in_insert = false,
+      severity_sort = true,
+      float = {
+        border = "rounded",
+        source = "if_many",
+        header = "诊断详情",
+        prefix = function(diagnostic)
+          return severity_zh[diagnostic.severity] .. ": ", "Comment"
+        end,
+      },
+    })
+
+    -- Vue 官方 TS 插件路径（关联 vtsls）
+    local vue_ls_path = S.data_path("mason", "packages", "vue-language-server", "node_modules", "@vue", "language-server")
     local vue_plugin = {
       name = "@vue/typescript-plugin",
-      location = vue_language_server_path,
+      location = vue_ls_path,
       languages = { "vue" },
       configNamespace = "typescript",
     }
 
-    -- 3. 声明全栈核心语言服务器矩阵
+    local capabilities = require("blink.cmp").get_lsp_capabilities()
+
+    ---@type table<string, vim.lsp.Config>
     local servers = {
-      cssls = {}, -- css
-      rust_analyzer = {},
-      taplo = {},
       lua_ls = {
-        root_markers = { ".git", "init.lua" },
         settings = {
-          Lua = { workspace = { checkThirdParty = false }, telemetry = { enable = false } },
+          Lua = {
+            runtime = { version = "LuaJIT" },
+            workspace = {
+              checkThirdParty = false,
+              library = { vim.env.VIMRUNTIME },
+            },
+            telemetry = { enable = false },
+            diagnostics = { globals = { "vim", "Snacks" } },
+            hint = { enable = true },
+          },
+        },
+      },
+      rust_analyzer = {
+        settings = {
+          ["rust-analyzer"] = {
+            cargo = { allFeatures = true },
+            check = { command = "clippy" }, -- 关联 nvim-lint / Clippy
+            diagnostics = { enable = true },
+            inlayHints = { lifetimeElisionHints = { enable = "always" } },
+          },
         },
       },
       vtsls = {
-        -- 【核心破局点 1：强行让 vtsls 允许挂载到 Vue 文件上】
         filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
         settings = {
-          -- 【核心破局点 2：标准的官方插件注入 API】
           vtsls = {
             tsserver = {
               globalPlugins = { vue_plugin },
             },
           },
+          typescript = {
+            inlayHints = {
+              parameterNames = { enabled = "literals" },
+              parameterTypes = { enabled = true },
+              variableTypes = { enabled = true },
+            },
+          },
         },
       },
-      vue_ls = {
-        -- 最新版 nvim-lspconfig 内部已内置请求转发机制，只需绑定文件类型即可
+      -- 当前 nvim-lspconfig 仍使用 volar 作为服务器名（映射到 vue-language-server）
+      volar = {
         filetypes = { "vue" },
+      },
+      html = {},
+      cssls = {},
+      marksman = {},
+      -- SQL：不启用 sqls/sqlls（Windows 安装易失败）；补全见 dadbod + blink
+      taplo = {},
+      emmet_language_server = {
+        filetypes = {
+          "html",
+          "css",
+          "scss",
+          "javascriptreact",
+          "typescriptreact",
+          "vue",
+        },
       },
     }
 
-    -- 4. 开机点火：全盘启动与补全引擎接管
-    for server_name, server_opts in pairs(servers) do
-      local success, blink = pcall(require, "blink.cmp")
-      if success then server_opts.capabilities = blink.get_lsp_capabilities(server_opts.capabilities) end
-
-      -- Neovim 0.11+ 标准 API
-      if lsp.config then
-        lsp.config(server_name, server_opts)
-        lsp.enable(server_name)
+    for name, opts in pairs(servers) do
+      opts.capabilities = vim.tbl_deep_extend("force", {}, capabilities, opts.capabilities or {})
+      -- Neovim 0.11+ 原生 API；0.10 回退到 nvim-lspconfig
+      if vim.lsp.config then
+        vim.lsp.config(name, opts)
+        vim.lsp.enable(name)
+      else
+        require("lspconfig")[name].setup(opts)
       end
     end
 
-    -- 5. 视觉增强：依然保留你的顶级高亮诊断 UI
-    vim.diagnostic.config {
-      virtual_text = { spacing = 4, prefix = "●" },
-      signs = {
-        text = {
-          [vim.diagnostic.severity.ERROR] = "󰅚 ",
-          [vim.diagnostic.severity.WARN] = "󰀪 ",
-          [vim.diagnostic.severity.INFO] = "󰋽 ",
-          [vim.diagnostic.severity.HINT] = "󰌶 ",
-        },
-      },
-      update_in_insert = false,
-      severity_sort = true,
-      float = {
-        focused = false,
-        border = "rounded",
-        source = "always",
-      },
-    }
-
-    vim.api.nvim_create_autocmd("CursorHold", {
-      pattern = "*",
-      callback = function() vim.diagnostic.open_float(nil, { focusable = false }) end,
+    -- LSP 附加后的缓冲级映射补充
+    vim.api.nvim_create_autocmd("LspAttach", {
+      group = vim.api.nvim_create_augroup("SLspAttach", { clear = true }),
+      callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if not client then
+          return
+        end
+        local has_hint = false
+        if vim.fn.has("nvim-0.11") == 1 then
+          has_hint = client:supports_method("textDocument/inlayHint")
+        else
+          has_hint = client.supports_method("textDocument/inlayHint")
+        end
+        if has_hint and vim.lsp.inlay_hint then
+          pcall(vim.lsp.inlay_hint.enable, true, { bufnr = args.buf })
+        end
+      end,
     })
   end,
 }

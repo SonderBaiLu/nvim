@@ -1,7 +1,8 @@
--- lua/lazy_init.lua
 -- =============================================================================
---              1. 纯原生 lazy.nvim 插件管理器自动安装与引导
+-- lazy_init.lua — lazy.nvim 引导、懒加载策略与启动性能优化
+-- 分析启动：:Lazy profile 或 <Leader>pp
 -- =============================================================================
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -9,23 +10,32 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- =============================================================================
---              2. 纯净初始化插件树 (扫描并挂载你的独立插件目录)
--- =============================================================================
 require("lazy").setup({
   spec = {
-    -- 自动导入 lua/plugins/ 目录下的所有独立插件文件 (如 lualine, lsp, treesitter 等)
     { import = "plugins" },
   },
+  defaults = {
+    lazy = true, -- 默认懒加载，各插件用 event/cmd/ft/keys 显式声明
+    version = false, -- 跟踪最新稳定提交；可用 version = "*" 锁 semver
+  },
   install = {
-    colorscheme = { "catppuccin" }, -- 过渡期兜底主题
+    colorscheme = { "catppuccin", "habamax" },
+  },
+  checker = {
+    enabled = true,
+    notify = false,
+  },
+  change_detection = {
+    notify = false,
   },
   ui = {
-    border = "rounded", -- 让 lazy 界面使用漂亮的圆角边框
+    border = "rounded",
+    title = "插件管理",
+    pills = true,
   },
   performance = {
+    cache = { enabled = true },
     rtp = {
-      -- 禁用 Vim 内置的一些过时非必要垃圾插件，让编辑器快如闪电
       disabled_plugins = {
         "gzip",
         "matchit",
@@ -38,9 +48,9 @@ require("lazy").setup({
       },
     },
   },
+  profiling = {
+    -- 启动后执行 :Lazy profile 查看各插件耗时
+    loader = true,
+    require = true,
+  },
 })
-
--- =============================================================================
---              3. 终极点火：在所有独立插件就绪后，正式激活全局主题
--- =============================================================================
-vim.cmd.colorscheme("catppuccin")

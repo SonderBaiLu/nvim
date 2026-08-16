@@ -1,59 +1,83 @@
+-- =============================================================================
+-- plugins/lualine.lua — 中文状态栏（Catppuccin Mocha）
+-- 关联：gitsigns / LSP / S.lsp_client_names
+-- =============================================================================
+
 return {
   "nvim-lualine/lualine.nvim",
-  dependencies = {
-    "nvim-tree/nvim-web-devicons",
-  },
   event = "VeryLazy",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
   opts = function()
-    -- 动态获取当前 Buffer 激活的 LSP 客户端名称（全栈利器）
-    local function get_active_lsp()
-      local msg = "No LSP"
-      local buf_ft = vim.api.nvim_get_current_buf()
-      local clients = vim.lsp.get_clients { bufnr = buf_ft }
-      if next(clients) == nil then return msg end
-      local lsp_names = {}
-      for _, client in ipairs(clients) do
-        table.insert(lsp_names, client.name)
-      end
-      return "󰄭 " .. table.concat(lsp_names, ", ")
-    end
+    local mode_map = {
+      n = "普通",
+      i = "插入",
+      v = "可视",
+      V = "视行",
+      ["\22"] = "视块",
+      c = "命令",
+      s = "选择",
+      S = "选行",
+      ["\19"] = "选块",
+      R = "替换",
+      r = "替换",
+      ["!"] = "外部",
+      t = "终端",
+    }
 
     return {
       options = {
-        theme = "auto",
-        component_separators = { left = "│", right = "│" }, -- 换成更精致的细线分隔
-        section_separators = { left = "", right = "" }, -- 保持你喜欢的无缝平滑过渡
-        globalstatus = true, -- 保持全局状态栏
-        disabled_filetypes = {
-          statusline = { "neo-tree", "lazy", "mason", "alpha" }, -- 排除特定面板防止冲突
-        },
+        theme = "catppuccin",
+        globalstatus = true,
+        component_separators = { left = "", right = "" },
+        section_separators = { left = "", right = "" },
+        disabled_filetypes = { statusline = { "dashboard", "alpha", "ministarter", "snacks_dashboard" } },
       },
       sections = {
         lualine_a = {
           {
-            "mode",
-            fmt = function(str) return " " .. str end, -- 为模式加上精美 Vim 图标
+            function()
+              return mode_map[vim.fn.mode()] or vim.fn.mode()
+            end,
+            icon = "",
           },
         },
         lualine_b = {
-          { "branch", icon = "󰘬" }, -- 精致的 Git 分支图标
-          "diff",
+          { "branch", icon = "", fmt = function(s)
+            return s ~= "" and ("分支 " .. s) or ""
+          end },
           {
-            "diagnostics",
-            -- 融合你之前特调的 Nerd Font 巨标，让报错更抓人眼球
-            symbols = { error = "󰅚 ", warn = "󰀪 ", info = "󰋽 ", hint = "󰌶 " },
+            "diff",
+            symbols = { added = "新增+", modified = "修改~", removed = "删除-" },
           },
         },
         lualine_c = {
-          { "filename", path = 1, file_status = true }, -- 显示相对路径，并带读写状态
+          { "filename", path = 1, symbols = { modified = " [已改]", readonly = " [只读]", unnamed = "[未命名]" } },
         },
         lualine_x = {
-          { get_active_lsp, color = { fg = "#ffddff", gui = "bold" } }, -- 实时监控 Rust/Vue 的 LSP 状态
-          { "filetype", icon_only = false }, -- 显示带有精致图标的文件类型
+          {
+            "diagnostics",
+            sources = { "nvim_diagnostic" },
+            symbols = { error = "错误:", warn = "警告:", info = "信息:", hint = "提示:" },
+          },
+          {
+            function()
+              local names = require("S").lsp_client_names(0)
+              if #names == 0 then
+                return "LSP:无"
+              end
+              return "LSP:" .. table.concat(names, ",")
+            end,
+          },
+          { "filetype", icon_only = false },
         },
-        lualine_y = { "progress" },
-        lualine_z = { "location" },
+        lualine_y = { { "progress", fmt = function(s)
+          return "进度 " .. s
+        end } },
+        lualine_z = { { "location", fmt = function(s)
+          return "位置 " .. s
+        end } },
       },
+      extensions = { "neo-tree", "lazy", "toggleterm", "trouble", "mason", "nvim-dap-ui" },
     }
   end,
 }
