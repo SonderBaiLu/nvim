@@ -32,6 +32,7 @@ return {
         "emmet-ls", -- Emmet 语言服务器（快速展开 HTML/CSS 片段）
         "rust-analyzer", -- Rust 核心链
         "taplo", -- Cargo.toml 自动补全与格式化工具
+        "css-lsp",
       },
     },
     config = function(_, opts) -- 插件加载时调用

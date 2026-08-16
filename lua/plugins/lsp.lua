@@ -21,6 +21,7 @@ return {
 
     -- 3. 声明全栈核心语言服务器矩阵
     local servers = {
+      cssls = {}, -- css
       rust_analyzer = {},
       taplo = {},
       lua_ls = {

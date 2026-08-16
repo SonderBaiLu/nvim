@@ -5,10 +5,10 @@ return {
   build = ":TSUpdate",
   config = function()
     -- 1. 调用主线标准的 setup
-    require("nvim-treesitter").setup({})
+    require("nvim-treesitter").setup {}
 
     -- 2. 声明你的全栈开发语言语法解析器列表
-    local langs = { "lua", "vim", "vimdoc", "typescript", "vue", "html", "css", "rust", "toml", "ron" }
+    local langs = { "css", "scss", "lua", "vim", "vimdoc", "typescript", "vue", "html", "css", "rust", "toml", "ron" }
 
     -- 3. 强制触发全量增量安装
     require("nvim-treesitter").install(langs)
@@ -28,7 +28,7 @@ return {
         end
       end,
     })
-		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
       if vim.api.nvim_buf_is_loaded(bufnr) then
         local ft = vim.bo[bufnr].filetype
         local lang = vim.treesitter.language.get_lang(ft) or ft
