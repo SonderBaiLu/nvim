@@ -52,6 +52,18 @@ return {
         Pmenu = { bg = colors.none },
         PmenuSel = { bg = colors.surface0, fg = colors.text },
         WinSeparator = { fg = colors.surface0 },
+
+        -- Blink.cmp 补全菜单美化 (对齐 Catppuccin)
+        BlinkCmpMenu = { bg = colors.crust },
+        BlinkCmpMenuBorder = { fg = colors.surface0, bg = colors.crust },
+        BlinkCmpMenuSelection = { bg = colors.surface0, fg = colors.text, bold = true },
+        BlinkCmpDoc = { bg = colors.mantle },
+        BlinkCmpDocBorder = { fg = colors.surface0, bg = colors.mantle },
+        BlinkCmpLabel = { fg = colors.text },
+        BlinkCmpLabelMatch = { fg = colors.blue, bold = true },
+        BlinkCmpKind = { fg = colors.lavender },
+        BlinkCmpSource = { fg = colors.subtext0 },
+
         DiagnosticVirtualTextError = { fg = colors.red },
         DiagnosticVirtualTextWarn = { fg = colors.yellow },
         DiagnosticVirtualTextInfo = { fg = colors.sky },

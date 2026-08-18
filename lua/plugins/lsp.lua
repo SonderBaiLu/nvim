@@ -1,8 +1,3 @@
--- =============================================================================
--- plugins/lsp.lua — 全栈 LSP（Neovim 0.11+ vim.lsp.config）
--- 关联：blink.cmp capabilities；Vue = vue_ls + vtsls 官方插件；中文诊断
--- =============================================================================
-
 return {
   "neovim/nvim-lspconfig",
   event = { "BufReadPre", "BufNewFile" },
@@ -12,7 +7,7 @@ return {
     "saghen/blink.cmp",
   },
   config = function()
-    local S = require("S")
+    local S = require "S"
 
     -- 中文诊断级别与符号
     local severity_zh = {
@@ -22,7 +17,7 @@ return {
       [vim.diagnostic.severity.HINT] = "提示",
     }
 
-    vim.diagnostic.config({
+    vim.diagnostic.config {
       virtual_text = {
         spacing = 2,
         prefix = "●",
@@ -46,17 +41,16 @@ return {
         border = "rounded",
         source = "if_many",
         header = "诊断详情",
-        prefix = function(diagnostic)
-          return severity_zh[diagnostic.severity] .. ": ", "Comment"
-        end,
+        prefix = function(diagnostic) return severity_zh[diagnostic.severity] .. ": ", "Comment" end,
       },
-    })
+    }
 
     -- Vue 官方 TS 插件路径（关联 vtsls）
-    local vue_ls_path = S.data_path("mason", "packages", "vue-language-server", "node_modules", "@vue", "language-server")
+    local vue_plugin_path =
+      S.data_path("mason", "packages", "vue-language-server", "node_modules", "@vue", "typescript-plugin")
     local vue_plugin = {
       name = "@vue/typescript-plugin",
-      location = vue_ls_path,
+      location = vue_plugin_path,
       languages = { "vue" },
       configNamespace = "typescript",
     }
@@ -143,18 +137,14 @@ return {
       group = vim.api.nvim_create_augroup("SLspAttach", { clear = true }),
       callback = function(args)
         local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if not client then
-          return
-        end
+        if not client then return end
         local has_hint = false
-        if vim.fn.has("nvim-0.11") == 1 then
-          has_hint = client:supports_method("textDocument/inlayHint")
+        if vim.fn.has "nvim-0.11" == 1 then
+          has_hint = client:supports_method "textDocument/inlayHint"
         else
-          has_hint = client.supports_method("textDocument/inlayHint")
+          has_hint = client.supports_method "textDocument/inlayHint"
         end
-        if has_hint and vim.lsp.inlay_hint then
-          pcall(vim.lsp.inlay_hint.enable, true, { bufnr = args.buf })
-        end
+        if has_hint and vim.lsp.inlay_hint then pcall(vim.lsp.inlay_hint.enable, true, { bufnr = args.buf }) end
       end,
     })
   end,

@@ -86,6 +86,8 @@ return {
         accept = { auto_brackets = { enabled = true } },
         menu = {
           border = "rounded",
+          winhighlight = "Normal:BlinkCmpMenu,FloatBorder:BlinkCmpMenuBorder,CursorLine:BlinkCmpMenuSelection,Search:None",
+          zindex = 1001,
           draw = {
             columns = { { "kind_icon" }, { "label", "label_description", gap = 1 }, { "kind" } },
             treesitter = { "lsp" },
@@ -94,11 +96,24 @@ return {
         documentation = {
           auto_show = true,
           auto_show_delay_ms = 200,
-          window = { border = "rounded" },
+          window = {
+            border = "rounded",
+            winhighlight = "Normal:BlinkCmpDoc,FloatBorder:BlinkCmpDocBorder,CursorLine:BlinkCmpDocCursorLine,Search:None",
+            zindex = 1000,
+            max_width = 60,
+            max_height = 20,
+          },
         },
         ghost_text = { enabled = true },
       },
-      signature = { enabled = true, window = { border = "rounded" } },
+      signature = {
+        enabled = true,
+        window = {
+          border = "rounded",
+          winhighlight = "Normal:BlinkCmpSignatureHelp,FloatBorder:BlinkCmpSignatureHelpBorder",
+          zindex = 1002,
+        },
+      },
     },
     opts_extend = { "sources.default" },
   },

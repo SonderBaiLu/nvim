@@ -18,7 +18,8 @@ return {
           ["cmp.entry.get_documentation"] = true,
         },
         hover = { enabled = true },
-        signature = { enabled = true, auto_open = { enabled = true } },
+        -- 禁用 Noice 的签名帮助，由 blink.cmp 统一接管，防止输入时 UI 重叠遮挡
+        signature = { enabled = false },
       },
       presets = {
         bottom_search = true,
