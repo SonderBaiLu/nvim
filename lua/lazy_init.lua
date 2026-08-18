@@ -3,16 +3,17 @@
 -- 分析启动：:Lazy profile 或 <Leader>pp
 -- =============================================================================
 
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  vim.fn.system { "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath }
 end
 vim.opt.rtp:prepend(lazypath)
 
-require("lazy").setup({
+require("lazy").setup {
   spec = {
     { import = "plugins" },
+    { import = "plugins.lsp" },
   },
   defaults = {
     lazy = true, -- 默认懒加载，各插件用 event/cmd/ft/keys 显式声明
@@ -53,4 +54,4 @@ require("lazy").setup({
     loader = true,
     require = true,
   },
-})
+}
